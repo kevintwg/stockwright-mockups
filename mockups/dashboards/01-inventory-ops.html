@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>01 — Inventory Ops</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/mockup.css" />
+  <style>:root { --accent: #0f766e; --accent-soft: #d9f2ef; }</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TX</div>
+        <div><strong>Stockwright</strong><span>Inventory ops</span></div>
+      </div>
+      <nav class="nav">
+        <a class="active" href="01-inventory-ops.html">Inventory</a>
+        <a href="02-revenue-cost.html">Revenue &amp; cost</a>
+        <a href="03-analytics-insights.html">Analytics</a>
+        <a href="04-access-roles.html">Access</a>
+        <a href="05-live-ops.html">Live ops</a>
+        <div class="section-label">Library</div>
+        <a href="../index.html">All mockups</a>
+      </nav>
+      <div class="stack-chip">
+        <b>Stack story</b>
+        Vite + React UI · Hono API · Postgres movements ledger · Docker Compose
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Inventory operations</h1>
+          <p>On-hand derived from movements. Search SKUs, filter by status, log a mock receipt.</p>
+        </div>
+        <div class="top-actions">
+          <input class="control" id="search" placeholder="Search SKU or name…" />
+          <button class="btn secondary" id="exportBtn">Export CSV</button>
+          <button class="btn accent" id="receiveBtn">Log receipt</button>
+        </div>
+      </div>
+
+      <section class="kpis">
+        <article class="kpi"><div class="label">SKUs tracked</div><div class="value" data-count="1284">0</div><div class="delta up">+18 this week</div></article>
+        <article class="kpi"><div class="label">Units on hand</div><div class="value" data-count="48220">0</div><div class="delta flat">across 3 locations</div></article>
+        <article class="kpi"><div class="label">Low stock</div><div class="value" data-count="37">0</div><div class="delta down">12 critical</div></article>
+        <article class="kpi"><div class="label">Movements today</div><div class="value" data-count="214">0</div><div class="delta up">+9% vs avg</div></article>
+      </section>
+
+      <section class="grid-2">
+        <div class="panel">
+          <div class="panel-h">
+            <h2>Stock trend (30d)</h2>
+            <span class="meta">units on hand</span>
+          </div>
+          <svg class="chart" id="stockTrend"></svg>
+        </div>
+        <div class="panel">
+          <div class="panel-h">
+            <h2>By location</h2>
+            <span class="meta">share of units</span>
+          </div>
+          <svg class="chart" id="locBars"></svg>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h">
+          <h2>SKU ledger</h2>
+          <div class="pill-tabs" id="statusPills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="ok">Healthy</button>
+            <button class="pill" data-value="warn">Low</button>
+            <button class="pill" data-value="danger">Critical</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="skuTable">
+            <thead>
+              <tr><th>SKU</th><th>Item</th><th>Location</th><th>On hand</th><th>Reorder</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../assets/mockup.js"></script>
+  <script>
+    const rows = [
+      ["SKU-1042", "A4 Copy Paper (case)", "Main", 42, 60, "warn"],
+      ["SKU-2210", "Thermal Labels 4x6", "Main", 520, 200, "ok"],
+      ["SKU-0881", "Packing Tape Clear", "East", 18, 40, "danger"],
+      ["SKU-3302", "Mailer Poly #4", "East", 860, 300, "ok"],
+      ["SKU-5519", "Ink Cartridge BK", "Main", 9, 24, "danger"],
+      ["SKU-7720", "Safety Gloves M", "Yard", 140, 80, "ok"],
+      ["SKU-1190", "Stretch Wrap 18in", "Yard", 55, 70, "warn"],
+      ["SKU-4401", "Cable Ties 8in", "Main", 1200, 400, "ok"],
+      ["SKU-9088", "First Aid Kit Refill", "East", 6, 12, "danger"],
+      ["SKU-6622", "LED Work Light", "Yard", 28, 20, "ok"]
+    ];
+
+    const tbody = document.querySelector("#skuTable tbody");
+    function statusBadge(s) {
+      const map = { ok: ["Healthy", "ok"], warn: ["Low", "warn"], danger: ["Critical", "danger"] };
+      const [label, cls] = map[s];
+      return '<span class="badge ' + cls + '">' + label + "</span>";
+    }
+    function render(filter) {
+      tbody.innerHTML = "";
+      rows.filter(r => filter === "all" || r[5] === filter).forEach(r => {
+        const tr = document.createElement("tr");
+        tr.dataset.status = r[5];
+        tr.innerHTML =
+          '<td class="mono">' + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td>" +
+          "<td>" + Mockup.formatNum(r[3]) + "</td><td>" + r[4] + "</td><td>" + statusBadge(r[5]) + "</td>" +
+          '<td><button class="btn secondary" data-sku="' + r[0] + '">Adjust</button></td>';
+        tbody.appendChild(tr);
+      });
+    }
+    render("all");
+
+    document.querySelectorAll(".kpi .value").forEach(el => {
+      Mockup.animateValue(el, Number(el.dataset.count));
+    });
+    Mockup.drawLineChart(document.getElementById("stockTrend"),
+      [41000, 42200, 41800, 43500, 44100, 45200, 44800, 46100, 47000, 48220]);
+    Mockup.drawHBars(document.getElementById("locBars"), [
+      { label: "Main", value: 52, display: "52%" },
+      { label: "East", value: 31, display: "31%" },
+      { label: "Yard", value: 17, display: "17%" }
+    ]);
+    Mockup.wireTableFilter(document.getElementById("search"), document.getElementById("skuTable"));
+    Mockup.wirePills(document.getElementById("statusPills"), (v) => render(v));
+
+    document.getElementById("exportBtn").onclick = () => Mockup.toast("Mock CSV exported (no file written)");
+    document.getElementById("receiveBtn").onclick = () => {
+      rows[0][3] += 20;
+      rows[0][5] = rows[0][3] < rows[0][4] ? "warn" : "ok";
+      render(document.querySelector("#statusPills .pill.active").dataset.value);
+      Mockup.toast("Receipt posted: +20 " + rows[0][0]);
+    };
+    tbody.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-sku]");
+      if (!btn) return;
+      Mockup.toast("Open adjust drawer for " + btn.dataset.sku);
+    });
+  </script>
+</body>
+</html>
