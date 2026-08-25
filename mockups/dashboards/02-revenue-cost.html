@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>02 — Revenue &amp; Cost</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/mockup.css" />
+  <style>:root { --accent: #b45309; --accent-soft: #ffedd5; --sidebar: #1a1410; }</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TX</div>
+        <div><strong>Stockwright</strong><span>Finance view</span></div>
+      </div>
+      <nav class="nav">
+        <a href="01-inventory-ops.html">Inventory</a>
+        <a class="active" href="02-revenue-cost.html">Revenue &amp; cost</a>
+        <a href="03-analytics-insights.html">Analytics</a>
+        <a href="04-access-roles.html">Access</a>
+        <a href="05-live-ops.html">Live ops</a>
+        <div class="section-label">Library</div>
+        <a href="../index.html">All mockups</a>
+      </nav>
+      <div class="stack-chip">
+        <b>Stack story</b>
+        Same Vite shell · SQL aggregates via Hono · chart panels lazy-loaded on route
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Revenue &amp; cost</h1>
+          <p>Financial dashboard layered on inventory sales. Range filters recompute mock KPIs.</p>
+        </div>
+        <div class="top-actions">
+          <select class="control" id="range">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <button class="btn secondary" id="compareBtn">Compare prior</button>
+          <button class="btn accent" id="closeBtn">Close period</button>
+        </div>
+      </div>
+
+      <section class="kpis">
+        <article class="kpi"><div class="label">Gross revenue</div><div class="value" id="rev">$0</div><div class="delta up" id="revDelta">—</div></article>
+        <article class="kpi"><div class="label">COGS</div><div class="value" id="cogs">$0</div><div class="delta flat" id="cogsDelta">—</div></article>
+        <article class="kpi"><div class="label">Gross margin</div><div class="value" id="margin">0%</div><div class="delta up" id="marginDelta">—</div></article>
+        <article class="kpi"><div class="label">Orders</div><div class="value" id="orders">0</div><div class="delta up" id="ordersDelta">—</div></article>
+      </section>
+
+      <section class="grid-2">
+        <div class="panel">
+          <div class="panel-h"><h2>Revenue vs cost</h2><span class="meta" id="chartMeta">30-day series</span></div>
+          <svg class="chart tall" id="revChart"></svg>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Cost mix</h2><span class="meta">% of COGS</span></div>
+          <svg class="chart tall" id="costMix"></svg>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h">
+          <h2>Recent settlements</h2>
+          <input class="control" id="search" placeholder="Filter channel or ID…" />
+        </div>
+        <div class="table-wrap">
+          <table id="finTable">
+            <thead>
+              <tr><th>Date</th><th>Channel</th><th>Reference</th><th>Revenue</th><th>COGS</th><th>Margin</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Aug 24</td><td>Wholesale</td><td class="mono">SET-9182</td><td>$18,400</td><td>$11,220</td><td>39%</td><td><span class="badge ok">Posted</span></td></tr>
+              <tr><td>Aug 24</td><td>Counter</td><td class="mono">SET-9181</td><td>$4,260</td><td>$1,980</td><td>54%</td><td><span class="badge ok">Posted</span></td></tr>
+              <tr><td>Aug 23</td><td>Web</td><td class="mono">SET-9177</td><td>$9,880</td><td>$5,410</td><td>45%</td><td><span class="badge warn">Review</span></td></tr>
+              <tr><td>Aug 23</td><td>Wholesale</td><td class="mono">SET-9174</td><td>$22,100</td><td>$14,300</td><td>35%</td><td><span class="badge ok">Posted</span></td></tr>
+              <tr><td>Aug 22</td><td>Web</td><td class="mono">SET-9169</td><td>$7,540</td><td>$3,900</td><td>48%</td><td><span class="badge ok">Posted</span></td></tr>
+              <tr><td>Aug 21</td><td>Counter</td><td class="mono">SET-9162</td><td>$3,120</td><td>$1,450</td><td>54%</td><td><span class="badge danger">Disputed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../assets/mockup.js"></script>
+  <script>
+    const seriesByRange = {
+      "7":  { rev: 128400, cogs: 74200, orders: 312, revSeries: [14,16,15,18,17,19,21], costSeries: [8,9,9,10,9,11,12] },
+      "30": { rev: 486200, cogs: 281400, orders: 1288, revSeries: [12,13,14,13,15,16,15,17,18,17,19,20,18,21,22,20,23,24,22,25,24,26,27,25,28,29,27,30,31,32], costSeries: [7,8,8,7,9,9,8,10,10,9,11,11,10,12,12,11,13,13,12,14,13,15,15,14,16,16,15,17,17,18] },
+      "90": { rev: 1412200, cogs: 822000, orders: 3904, revSeries: [10,11,12,13,12,14,15,16,15,17,18,19,18,20,21,22,21,23,24,25], costSeries: [6,7,7,8,7,8,9,9,8,10,10,11,10,11,12,12,11,13,13,14] }
+    };
+
+    function applyRange(key) {
+      const d = seriesByRange[key];
+      const margin = Math.round(((d.rev - d.cogs) / d.rev) * 100);
+      Mockup.animateValue(document.getElementById("rev"), d.rev, { money: true });
+      Mockup.animateValue(document.getElementById("cogs"), d.cogs, { money: true });
+      document.getElementById("margin").textContent = margin + "%";
+      Mockup.animateValue(document.getElementById("orders"), d.orders);
+      document.getElementById("revDelta").textContent = "+6.4% vs prior";
+      document.getElementById("cogsDelta").textContent = "tracked against PO costs";
+      document.getElementById("marginDelta").textContent = margin >= 40 ? "Above target" : "Below 40% target";
+      document.getElementById("ordersDelta").textContent = "AOV " + Mockup.formatMoney(d.rev / d.orders);
+      document.getElementById("chartMeta").textContent = key + "-day series";
+      Mockup.drawLineChart(document.getElementById("revChart"), d.revSeries.map(x => x * 1000), { stroke: "#b45309" });
+    }
+
+    applyRange("30");
+    Mockup.drawHBars(document.getElementById("costMix"), [
+      { label: "Materials", value: 48, display: "48%" },
+      { label: "Freight", value: 18, display: "18%" },
+      { label: "Labor", value: 22, display: "22%" },
+      { label: "Shrink", value: 7, display: "7%" },
+      { label: "Other", value: 5, display: "5%" }
+    ], { color: "#b45309" });
+
+    document.getElementById("range").onchange = (e) => applyRange(e.target.value);
+    Mockup.wireTableFilter(document.getElementById("search"), document.getElementById("finTable"));
+    document.getElementById("compareBtn").onclick = () => Mockup.toast("Prior period overlay on (mock)");
+    document.getElementById("closeBtn").onclick = () => Mockup.toast("Period close checklist opened (mock)");
+  </script>
+</body>
+</html>
