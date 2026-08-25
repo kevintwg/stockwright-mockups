@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>03 — Analytics &amp; Insights</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/mockup.css" />
+  <style>:root { --accent: #0369a1; --accent-soft: #e0f2fe; --sidebar: #0b1724; }</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TX</div>
+        <div><strong>Stockwright</strong><span>Insights</span></div>
+      </div>
+      <nav class="nav">
+        <a href="01-inventory-ops.html">Inventory</a>
+        <a href="02-revenue-cost.html">Revenue &amp; cost</a>
+        <a class="active" href="03-analytics-insights.html">Analytics</a>
+        <a href="04-access-roles.html">Access</a>
+        <a href="05-live-ops.html">Live ops</a>
+        <div class="section-label">Library</div>
+        <a href="../index.html">All mockups</a>
+      </nav>
+      <div class="stack-chip">
+        <b>Stack story</b>
+        Chart-heavy route · TanStack Query-style filters · works in Vite or Next shell
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Analytics &amp; insights</h1>
+          <p>Category mix, velocity, and a simple forecast band. Insight cards reshuffle with the segment pills.</p>
+        </div>
+        <div class="top-actions">
+          <div class="pill-tabs" id="segment">
+            <button class="pill active" data-value="all">All channels</button>
+            <button class="pill" data-value="web">Web</button>
+            <button class="pill" data-value="wholesale">Wholesale</button>
+            <button class="pill" data-value="counter">Counter</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="grid-3">
+        <article class="panel" id="insight1">
+          <div class="panel-h"><h2>Insight</h2><span class="badge live">Auto</span></div>
+          <p style="margin:0;font-size:1.05rem;letter-spacing:-0.02em" id="insightText">Packaging SKUs are turning 1.4× faster than Q2 — consider raising East reorder points.</p>
+        </article>
+        <article class="panel">
+          <div class="panel-h"><h2>Sell-through</h2><span class="meta">14d</span></div>
+          <div class="value" style="font-size:2rem;font-weight:700" id="sellThrough">0%</div>
+          <div class="delta up">+3.1 pts</div>
+        </article>
+        <article class="panel">
+          <div class="panel-h"><h2>Dead stock risk</h2><span class="meta">$ at risk</span></div>
+          <div class="value" style="font-size:2rem;font-weight:700" id="deadStock">$0</div>
+          <div class="delta down">11 SKUs stale &gt;90d</div>
+        </article>
+      </section>
+
+      <section class="grid-2">
+        <div class="panel">
+          <div class="panel-h"><h2>Demand + forecast band</h2><span class="meta">units / day</span></div>
+          <svg class="chart tall" id="forecast"></svg>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Category contribution</h2><span class="meta">revenue share</span></div>
+          <svg class="chart tall" id="categories"></svg>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h">
+          <h2>Velocity leaders</h2>
+          <input class="control" id="search" placeholder="Filter item…" />
+        </div>
+        <div class="table-wrap">
+          <table id="velTable">
+            <thead>
+              <tr><th>Item</th><th>Category</th><th>Units / wk</th><th>Days cover</th><th>Trend</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr data-seg="web"><td>Thermal Labels 4x6</td><td>Packaging</td><td>640</td><td>6</td><td><span class="badge ok">Rising</span></td><td><button class="btn secondary">Raise PO</button></td></tr>
+              <tr data-seg="wholesale"><td>A4 Copy Paper</td><td>Paper</td><td>210</td><td>4</td><td><span class="badge warn">Tight</span></td><td><button class="btn secondary">Raise PO</button></td></tr>
+              <tr data-seg="counter"><td>Stretch Wrap 18in</td><td>Packaging</td><td>95</td><td>9</td><td><span class="badge ok">Stable</span></td><td><button class="btn secondary">Watch</button></td></tr>
+              <tr data-seg="web"><td>Mailer Poly #4</td><td>Packaging</td><td>410</td><td>12</td><td><span class="badge ok">Rising</span></td><td><button class="btn secondary">Hold</button></td></tr>
+              <tr data-seg="wholesale"><td>Ink Cartridge BK</td><td>Consumables</td><td>48</td><td>3</td><td><span class="badge danger">Stockout risk</span></td><td><button class="btn secondary">Expedite</button></td></tr>
+              <tr data-seg="counter"><td>Safety Gloves M</td><td>PPE</td><td>70</td><td>18</td><td><span class="badge neutral">Soft</span></td><td><button class="btn secondary">Promo?</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../assets/mockup.js"></script>
+  <script>
+    const insights = {
+      all: "Packaging SKUs are turning 1.4× faster than Q2 — consider raising East reorder points.",
+      web: "Web channel margin improved 2.1 pts after freight surcharge — keep the rule for orders under $75.",
+      wholesale: "Wholesale paper fill rate dipped to 91%. Two delayed POs are the main driver.",
+      counter: "Counter attach-rate on tape + wrap kits is up; bundle offer is working."
+    };
+    const baseDemand = [120, 132, 128, 140, 155, 149, 160, 170, 166, 180, 188, 194];
+
+    function paintForecast() {
+      // demand line + soft “forecast” continuation via second path baked into values
+      const withForecast = baseDemand.concat([198, 205, 210, 208]);
+      Mockup.drawLineChart(document.getElementById("forecast"), withForecast, { stroke: "#0369a1" });
+    }
+    paintForecast();
+    Mockup.drawBarChart(document.getElementById("categories"),
+      ["Pack", "Paper", "Ink", "PPE", "Other"],
+      [34, 22, 18, 14, 12],
+      { color: "#0369a1" });
+
+    Mockup.animateValue(document.getElementById("sellThrough"), 64);
+    document.getElementById("sellThrough").textContent = "64%";
+    setTimeout(() => { document.getElementById("sellThrough").textContent = "64%"; }, 750);
+    Mockup.animateValue(document.getElementById("deadStock"), 18400, { money: true });
+
+    Mockup.wireTableFilter(document.getElementById("search"), document.getElementById("velTable"));
+    Mockup.wirePills(document.getElementById("segment"), (v) => {
+      document.getElementById("insightText").textContent = insights[v];
+      document.querySelectorAll("#velTable tbody tr").forEach(tr => {
+        tr.style.display = (v === "all" || tr.dataset.seg === v) ? "" : "none";
+      });
+      Mockup.toast("Segment: " + v);
+    });
+
+    document.querySelector("#velTable").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      Mockup.toast(btn.textContent.trim() + " queued (mock)");
+    });
+  </script>
+</body>
+</html>
