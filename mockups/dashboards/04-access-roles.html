@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>04 — Access &amp; Roles</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/mockup.css" />
+  <style>:root { --accent: #4d7c0f; --accent-soft: #ecfccb; --sidebar: #12160f; }</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TX</div>
+        <div><strong>Stockwright</strong><span>Access control</span></div>
+      </div>
+      <nav class="nav">
+        <a href="01-inventory-ops.html">Inventory</a>
+        <a href="02-revenue-cost.html">Revenue &amp; cost</a>
+        <a href="03-analytics-insights.html">Analytics</a>
+        <a class="active" href="04-access-roles.html">Access</a>
+        <a href="05-live-ops.html">Live ops</a>
+        <div class="section-label">Library</div>
+        <a href="../index.html">All mockups</a>
+      </nav>
+      <div class="stack-chip">
+        <b>Stack story</b>
+        Better Auth / session cookies · role claims on Hono routes · UI gates for staff vs manager
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Access &amp; roles</h1>
+          <p>Toggle staff vs manager. Finance panels lock for staff; inventory actions stay available.</p>
+        </div>
+        <div class="top-actions">
+          <div class="role-switch" id="roleSwitch">
+            <button data-role="staff">Staff</button>
+            <button class="active" data-role="manager">Manager</button>
+          </div>
+          <button class="btn secondary" id="inviteBtn">Invite user</button>
+        </div>
+      </div>
+
+      <section class="kpis">
+        <article class="kpi"><div class="label">Active users</div><div class="value" data-count="24">0</div><div class="delta flat">8 managers · 16 staff</div></article>
+        <article class="kpi"><div class="label">Sessions today</div><div class="value" data-count="61">0</div><div class="delta up">peak 10:00–11:00</div></article>
+        <article class="kpi"><div class="label">Failed logins</div><div class="value" data-count="3">0</div><div class="delta down">rate limited</div></article>
+        <article class="kpi"><div class="label">Your role</div><div class="value" id="roleLabel" style="font-size:1.35rem">Manager</div><div class="delta flat">demo switcher</div></article>
+      </section>
+
+      <section class="grid-2">
+        <div class="panel" id="financePanel">
+          <div class="panel-h"><h2>Margin snapshot</h2><span class="meta">manager-only</span></div>
+          <svg class="chart" id="marginChart"></svg>
+          <p class="muted" style="margin:8px 0 0">Staff see a lock overlay instead of dollar figures.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Permission matrix</h2><span class="meta">mock policy</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Capability</th><th>Staff</th><th>Manager</th></tr></thead>
+              <tbody>
+                <tr><td>View inventory</td><td><span class="badge ok">Yes</span></td><td><span class="badge ok">Yes</span></td></tr>
+                <tr><td>Post movements</td><td><span class="badge ok">Yes</span></td><td><span class="badge ok">Yes</span></td></tr>
+                <tr><td>View revenue / COGS</td><td><span class="badge danger">No</span></td><td><span class="badge ok">Yes</span></td></tr>
+                <tr><td>Close periods</td><td><span class="badge danger">No</span></td><td><span class="badge ok">Yes</span></td></tr>
+                <tr><td>Manage users</td><td><span class="badge danger">No</span></td><td><span class="badge ok">Yes</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h">
+          <h2>Directory</h2>
+          <input class="control" id="search" placeholder="Search people…" />
+        </div>
+        <div class="table-wrap">
+          <table id="userTable">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last active</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Ava Chen</td><td>ava@example.com</td><td>Manager</td><td>2m ago</td><td><button class="btn secondary edit-user">Edit</button></td></tr>
+              <tr><td>Noah Patel</td><td>noah@example.com</td><td>Staff</td><td>14m ago</td><td><button class="btn secondary edit-user">Edit</button></td></tr>
+              <tr><td>Mia Brooks</td><td>mia@example.com</td><td>Staff</td><td>1h ago</td><td><button class="btn secondary edit-user">Edit</button></td></tr>
+              <tr><td>Luis Ortega</td><td>luis@example.com</td><td>Manager</td><td>Yesterday</td><td><button class="btn secondary edit-user">Edit</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../assets/mockup.js"></script>
+  <script>
+    document.querySelectorAll(".kpi .value[data-count]").forEach(el => {
+      Mockup.animateValue(el, Number(el.dataset.count));
+    });
+    Mockup.drawLineChart(document.getElementById("marginChart"), [38, 39, 41, 40, 42, 43, 44, 42, 45], { stroke: "#4d7c0f" });
+    Mockup.wireTableFilter(document.getElementById("search"), document.getElementById("userTable"));
+
+    const finance = document.getElementById("financePanel");
+    function applyRole(role) {
+      document.getElementById("roleLabel").textContent = role[0].toUpperCase() + role.slice(1);
+      if (role === "staff") {
+        finance.classList.add("locked");
+        finance.dataset.lock = "Managers only — revenue figures hidden";
+        document.querySelectorAll(".edit-user").forEach(b => { b.disabled = true; b.style.opacity = .45; });
+      } else {
+        finance.classList.remove("locked");
+        finance.removeAttribute("data-lock");
+        document.querySelectorAll(".edit-user").forEach(b => { b.disabled = false; b.style.opacity = 1; });
+      }
+    }
+    Mockup.wireRoleSwitch(document.getElementById("roleSwitch"), applyRole);
+    applyRole("manager");
+
+    document.getElementById("inviteBtn").onclick = () => {
+      const role = document.querySelector("#roleSwitch .active").dataset.role;
+      if (role === "staff") Mockup.toast("Staff cannot invite users");
+      else Mockup.toast("Invite dialog (mock)");
+    };
+    document.querySelector("#userTable").addEventListener("click", (e) => {
+      const btn = e.target.closest(".edit-user");
+      if (!btn || btn.disabled) return;
+      Mockup.toast("Edit user drawer (mock)");
+    });
+  </script>
+</body>
+</html>
