@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>05 — Live Ops Feed</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/mockup.css" />
+  <style>
+    :root { --accent: #0e7490; --accent-soft: #cffafe; --sidebar: #07151a; }
+    .lean-note {
+      font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .04em;
+      text-transform: uppercase; color: #67e8f9; opacity: .9;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TX</div>
+        <div><strong>Stockwright</strong><span>Live ops</span></div>
+      </div>
+      <nav class="nav">
+        <a href="01-inventory-ops.html">Inventory</a>
+        <a href="02-revenue-cost.html">Revenue &amp; cost</a>
+        <a href="03-analytics-insights.html">Analytics</a>
+        <a href="04-access-roles.html">Access</a>
+        <a class="active" href="05-live-ops.html">Live ops</a>
+        <div class="section-label">Library</div>
+        <a href="../index.html">All mockups</a>
+      </nav>
+      <div class="stack-chip">
+        <b>Stack story</b>
+        Realtime UX demo (Supabase-style feed) · lean chrome for a Rust/Axum API path · polling fallback
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="lean-note">latency budget · small VPS</div>
+          <h1>Live operations</h1>
+          <p>Simulated event stream. Pause/resume the feed. Feels “live” without a backend websocket.</p>
+        </div>
+        <div class="top-actions">
+          <span class="badge live">Connected</span>
+          <span class="control mono" id="clock">--:--:--</span>
+          <button class="btn secondary" id="pauseBtn">Pause feed</button>
+          <button class="btn accent" id="burstBtn">Simulate burst</button>
+        </div>
+      </div>
+
+      <section class="kpis">
+        <article class="kpi"><div class="label">Events / min</div><div class="value" id="epm">0</div><div class="delta up">mock throughput</div></article>
+        <article class="kpi"><div class="label">Open picks</div><div class="value" data-count="17">0</div><div class="delta flat">warehouse</div></article>
+        <article class="kpi"><div class="label">API p95 (fake)</div><div class="value" id="p95" style="font-size:1.45rem">42ms</div><div class="delta up">Rust-lean target</div></article>
+        <article class="kpi"><div class="label">Replication</div><div class="value" style="font-size:1.2rem">Postgres</div><div class="delta flat">or Supabase realtime</div></article>
+      </section>
+
+      <section class="grid-2">
+        <div class="panel">
+          <div class="panel-h">
+            <h2>Activity stream</h2>
+            <span class="meta">newest first</span>
+          </div>
+          <div class="feed" id="feed"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Throughput</h2><span class="meta">events / bucket</span></div>
+          <svg class="chart tall" id="thru"></svg>
+          <div class="split-actions" style="margin-top:10px">
+            <button class="btn secondary" id="pollBtn">Use polling mode</button>
+            <button class="btn secondary" id="wsBtn">Use websocket mode</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h">
+          <h2>In-flight work</h2>
+          <input class="control" id="search" placeholder="Filter ticket…" />
+        </div>
+        <div class="table-wrap">
+          <table id="workTable">
+            <thead><tr><th>Ticket</th><th>Type</th><th>Owner</th><th>Age</th><th>State</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">MOV-2041</td><td>Receipt</td><td>Noah</td><td>4m</td><td><span class="badge warn">Scanning</span></td></tr>
+              <tr><td class="mono">MOV-2039</td><td>Issue</td><td>Mia</td><td>9m</td><td><span class="badge ok">Packed</span></td></tr>
+              <tr><td class="mono">ADJ-448</td><td>Adjust</td><td>Ava</td><td>16m</td><td><span class="badge neutral">Queued</span></td></tr>
+              <tr><td class="mono">MOV-2033</td><td>Transfer</td><td>Luis</td><td>28m</td><td><span class="badge danger">Blocked</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../assets/mockup.js"></script>
+  <script>
+    const events = [
+      { title: "Receipt posted", detail: "SKU-2210 +120 · Main dock", color: "#0e7490" },
+      { title: "Low stock alert", detail: "SKU-0881 below reorder at East", color: "#b45309" },
+      { title: "Pick completed", detail: "Order W-10422 · 14 lines", color: "#047857" },
+      { title: "Transfer started", detail: "Main → Yard · tote T-88", color: "#0369a1" },
+      { title: "Adjust approved", detail: "Cycle count variance −3 gloves", color: "#4d7c0f" },
+      { title: "API health", detail: "p95 38ms on /movements", color: "#0f766e" }
+    ];
+    const feed = document.getElementById("feed");
+    const thru = [];
+    let paused = false;
+    let mode = "websocket";
+    let epm = 12;
+
+    Mockup.tickLiveClock(document.getElementById("clock"));
+    document.querySelectorAll(".kpi .value[data-count]").forEach(el => {
+      Mockup.animateValue(el, Number(el.dataset.count));
+    });
+
+    function pushEvent(item) {
+      Mockup.prependFeed(feed, item);
+      thru.push(1 + Math.floor(Math.random() * 5));
+      if (thru.length > 16) thru.shift();
+      Mockup.drawBarChart(document.getElementById("thru"),
+        thru.map((_, i) => String(i + 1)), thru, { color: "#0e7490" });
+      epm = Math.min(48, epm + 1);
+      document.getElementById("epm").textContent = String(epm);
+    }
+
+    // seed
+    events.slice(0, 4).forEach((e, i) => {
+      Mockup.prependFeed(feed, Object.assign({}, e, { when: (i + 1) * 12 + "s ago" }));
+    });
+    for (let i = 0; i < 10; i++) thru.push(2 + (i % 4));
+    Mockup.drawBarChart(document.getElementById("thru"), thru.map((_, i) => String(i + 1)), thru, { color: "#0e7490" });
+    document.getElementById("epm").textContent = String(epm);
+
+    setInterval(function () {
+      if (paused) return;
+      const item = events[Math.floor(Math.random() * events.length)];
+      pushEvent(item);
+      document.getElementById("p95").textContent = (34 + Math.floor(Math.random() * 18)) + "ms";
+    }, 2800);
+
+    document.getElementById("pauseBtn").onclick = function () {
+      paused = !paused;
+      this.textContent = paused ? "Resume feed" : "Pause feed";
+      Mockup.toast(paused ? "Feed paused" : "Feed live");
+    };
+    document.getElementById("burstBtn").onclick = function () {
+      for (let i = 0; i < 5; i++) pushEvent(events[i % events.length]);
+      Mockup.toast("Burst of 5 events");
+    };
+    document.getElementById("pollBtn").onclick = function () {
+      mode = "polling"; Mockup.toast("Mode: polling every 3s (mock)");
+    };
+    document.getElementById("wsBtn").onclick = function () {
+      mode = "websocket"; Mockup.toast("Mode: websocket / Supabase channel (mock)");
+    };
+    Mockup.wireTableFilter(document.getElementById("search"), document.getElementById("workTable"));
+  </script>
+</body>
+</html>
