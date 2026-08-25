@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Templates — Dashboard Mockups</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/mockup.css" />
+  <style>
+    :root { --accent: #0f766e; }
+    .gallery { max-width: 1100px; margin: 0 auto; padding: 40px 22px 64px; }
+    .gallery-hero {
+      display: grid; gap: 10px; margin-bottom: 28px;
+      padding: 28px; border-radius: 22px; background: #101820; color: #e8eef5;
+      background-image:
+        radial-gradient(600px 220px at 0% 0%, rgba(15,118,110,.45), transparent 60%),
+        linear-gradient(135deg, #101820, #182430);
+    }
+    .gallery-hero h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.04em; }
+    .gallery-hero p { margin: 0; max-width: 62ch; color: #b7c4d2; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .card {
+      background: #fff; border: 1px solid #d7dee6; border-radius: 16px; padding: 18px;
+      box-shadow: 0 10px 30px rgba(20,32,43,.06);
+      display: flex; flex-direction: column; gap: 10px;
+      transition: transform .15s ease, border-color .15s;
+    }
+    .card:hover { transform: translateY(-3px); border-color: #0f766e; }
+    .card .n { font-family: "IBM Plex Mono", monospace; color: #0f766e; font-weight: 600; font-size: .8rem; }
+    .card h2 { margin: 0; font-size: 1.2rem; letter-spacing: -0.02em; }
+    .card p { margin: 0; color: #5c6b7a; flex: 1; }
+    .card .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .card .tag {
+      font-size: .72rem; font-weight: 600; padding: 4px 8px; border-radius: 999px;
+      background: #eef1f4; color: #334155;
+    }
+    .note {
+      margin-top: 22px; padding: 14px 16px; border-radius: 12px;
+      background: #eef1f4; color: #334155; font-size: .92rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="gallery">
+    <header class="gallery-hero">
+      <div class="n" style="font-family:IBM Plex Mono,monospace;opacity:.8">TEMPLATES / MOCKUPS</div>
+      <h1>Five dashboard mockups</h1>
+      <p>
+        Interactive HTML stand-ins for an inventory + sales + finance product.
+        No backend — filters, role switching, charts, and tables run in the browser with sample data.
+        Layout language follows common Figma sales-dashboard patterns (sidebar, KPI strip, charts, dense tables).
+      </p>
+    </header>
+
+    <div class="cards">
+      <a class="card" href="dashboards/01-inventory-ops.html">
+        <div class="n">01</div>
+        <h2>Inventory Ops</h2>
+        <p>On-hand stock, low-stock alerts, movements ledger. Primary Vite + Hono + Postgres story.</p>
+        <div class="tags">
+          <span class="tag">Vite</span><span class="tag">Hono</span><span class="tag">Postgres</span><span class="tag">TanStack-style table</span>
+        </div>
+      </a>
+      <a class="card" href="dashboards/02-revenue-cost.html">
+        <div class="n">02</div>
+        <h2>Revenue &amp; Cost</h2>
+        <p>Financial KPIs, margin trend, cost breakdown. Same app shell, money-focused surface.</p>
+        <div class="tags">
+          <span class="tag">Vite</span><span class="tag">Charts</span><span class="tag">Drizzle/SQL reads</span>
+        </div>
+      </a>
+      <a class="card" href="dashboards/03-analytics-insights.html">
+        <div class="n">03</div>
+        <h2>Analytics &amp; Insights</h2>
+        <p>Cohorts, category mix, forecast-style bands. Heavier chart workspace.</p>
+        <div class="tags">
+          <span class="tag">Recharts-like</span><span class="tag">Query filters</span><span class="tag">Next or Vite</span>
+        </div>
+      </a>
+      <a class="card" href="dashboards/04-access-roles.html">
+        <div class="n">04</div>
+        <h2>Access &amp; Roles</h2>
+        <p>Staff vs manager permissions. Toggle role to lock finance panels.</p>
+        <div class="tags">
+          <span class="tag">Better Auth</span><span class="tag">RBAC</span><span class="tag">Hono sessions</span>
+        </div>
+      </a>
+      <a class="card" href="dashboards/05-live-ops.html">
+        <div class="n">05</div>
+        <h2>Live Ops Feed</h2>
+        <p>Realtime-feeling activity stream + lean API vibe (Supabase-style live / Rust-lean chrome).</p>
+        <div class="tags">
+          <span class="tag">Realtime UX</span><span class="tag">Supabase story</span><span class="tag">Rust API optional</span>
+        </div>
+      </a>
+    </div>
+
+    <p class="note">
+      Open any card, or download the zip from the agent artifacts and open <code>mockups/index.html</code> locally.
+      Fonts load from Google when online; charts and interactions work offline.
+    </p>
+  </div>
+</body>
+</html>
